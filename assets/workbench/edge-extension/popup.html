@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI创作台收藏连接</title><link rel="stylesheet" href="popup.css"></head><body>
+<h1>连接当前浏览器</h1><p>使用你已经登录抖音的浏览器，收藏作品信息仅发送到本机工作台。Chrome / Edge可按标准扩展流程连接；搜狗 / 360先检查版本和接口。</p>
+<button id="check" class="secondary">检查浏览器兼容性</button><p id="compatibility" role="status"></p>
+<label for="code">工作台一次性配对码</label><input id="code" type="password" autocomplete="off" placeholder="从工作台「我的」复制，10分钟有效">
+<button id="pair">连接本机工作台</button><button id="sync" class="secondary">同步收藏</button>
+<p id="message" role="status">首次使用先在工作台生成配对码。</p>
+<details><summary>访问范围</summary><p>只访问 www.douyin.com 和本机 127.0.0.1。没有Cookie、历史记录、密码、下载或调试器权限。同步时可能临时打开同账号的收藏标签；出现登录或验证提示即停止。浏览器关闭或电脑休眠时不能同步。同一工作台一次配对一个采集浏览器。</p></details>
+<button id="forget" class="plain">移除本机连接</button><script src="browser-compat.js"></script><script src="popup.js"></script></body></html>

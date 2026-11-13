@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "选题工作台 · 本机浏览器收藏连接",
+  "version": "1.0.3",
+  "description": "连接已登录抖音的本机Chromium浏览器，将收藏作品信息发送给本机工作台；Chrome/Edge标准路线，搜狗/360需版本验收。",
+  "permissions": [
+    "scripting",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://www.douyin.com/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://127.0.0.1/*"
+      ],
+      "js": [
+        "relay.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "AI创作台收藏连接"
+  }
+}

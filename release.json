@@ -1,0 +1,46 @@
+{
+  "version": "0.3.0-beta",
+  "target": "Windows local agents",
+  "browsers": {
+    "favorites": "selected logged-in Chromium browser + paired extension; Chrome/Edge standard route, Sogou/360 version-dependent",
+    "following": "host Agent visible browser adapter + candidate import"
+  },
+  "production_source_modified": true,
+  "validated_domains": [
+    "AI（隔离回归）",
+    "居家健身（合成）",
+    "家常菜（合成）",
+    "装修（合成）"
+  ],
+  "external_host_e2e": {
+    "WorkBuddy": "未实机验收",
+    "豆包工作": "未实机验收"
+  },
+  "daily_execution": "local backend while machine/service are available",
+  "paid_capabilities": "own TikHub for public data/search; own DeepSeek for in-app analysis",
+  "secrets_included": false,
+  "browser_e2e": {
+    "Chrome": "not_performed_for_this_release",
+    "Edge": "not_performed_for_this_release",
+    "Sogou": "not_performed_for_this_release",
+    "360": "not_performed_for_this_release"
+  },
+  "browser_check": "MV3+scripting+tabs+storage+alarms+modern JS primitives; interface check is not an end-to-end test",
+  "product_focus": "每日发现、备选选题、收藏分类、对标跟踪；取消知识库与制作入口",
+  "cover_compatibility": "authenticated local cache; HEIC to JPEG with local FFmpeg; failure placeholder; no paid auto-refresh",
+  "source_baseline": "2026-11-13",
+  "phone_access": "opt-in Quick Tunnel; Windows; new users must test with 5G",
+  "validation": {
+    "backend_full": "230 passed / 12 retired-feature skips",
+    "final_related_checks": "32 passed after final classification/reason fixes",
+    "frontend_tests": "5 passed",
+    "build": "fresh npm ci + final TypeScript/Vite build passed",
+    "installer": "actual installer in a fresh isolated directory on Windows",
+    "browser": "synthetic industry UI, 428/320; no provider calls",
+    "external_hosts": "fresh-machine WorkBuddy/Doubao not tested",
+    "fees_for_qa": "0"
+  },
+  "tags_reference": "https://betteropc.com/self-media/traffic-tags",
+  "tags_reference_checked_date": "2026-11-13",
+  "publication": "Public beta v0.3.0-beta; see GitHub Releases and docs/RELEASE-TESTS.md"
+}

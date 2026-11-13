@@ -1,0 +1,4 @@
+interface:
+  display_name: "自媒体选题工作台"
+  short_description: "问答确定领域和关键词，连接本人抖音收藏、筛选关注对标并配置每日选题更新"
+  default_prompt: "用 $creator-workbench 在我的电脑搭建选题工作台，先了解我的领域和兴趣，再连接本人抖音收藏与关注候选。"

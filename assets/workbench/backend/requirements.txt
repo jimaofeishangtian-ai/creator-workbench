@@ -1,0 +1,8 @@
+fastapi==0.136.0
+uvicorn==0.45.0
+pydantic==2.13.3
+httpx==0.28.1
+playwright==1.58.0
+tzdata==2026.2
+yt-dlp==2026.10.21
+pypdf==6.21.4
