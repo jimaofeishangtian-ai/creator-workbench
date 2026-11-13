@@ -12,6 +12,8 @@ import webbrowser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "backend"))
+from app.platform_support import process_options
 DEFAULT_DATA = ROOT / "runtime"
 RUNTIME = DEFAULT_DATA
 
@@ -38,13 +40,13 @@ def main():
     if not health():
         python = ROOT / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
         if not python.exists() or not (ROOT / "frontend/dist/index.html").exists():
-            print("请先运行「安装工作台.cmd」。")
+            print("请先运行「安装工作台.command」或安装工作台.cmd，或 python3 scripts/install.py。")
             return 1
         env = os.environ.copy()
         env["PYTHONPATH"] = str(ROOT / "backend")
         env["PYTHONIOENCODING"] = "utf-8"
         with (RUNTIME / "server.log").open("a", encoding="utf-8") as log:
-            process = subprocess.Popen([str(python), "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8765", "--proxy-headers", "--forwarded-allow-ips", "127.0.0.1", "--no-access-log"], cwd=ROOT, env=env, stdout=log, stderr=log, creationflags=0x08000000 if os.name == "nt" else 0)
+            process = subprocess.Popen([str(python), "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8765", "--proxy-headers", "--forwarded-allow-ips", "127.0.0.1", "--no-access-log"], cwd=ROOT, env=env, stdin=subprocess.DEVNULL, stdout=log, stderr=log, **process_options(detached=True))
             (RUNTIME / "server.pid").write_text(str(process.pid), encoding="ascii")
         for _ in range(45):
             if health():

@@ -1,0 +1,44 @@
+name: Verify macOS candidate
+on:
+  push:
+    branches: ['compat/macos-*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install candidate with optional Mac CPU transcription
+        run: python assets/workbench/scripts/install.py --with-asr
+      - name: Install isolated test dependencies
+        run: assets/workbench/.venv/bin/python -m pip install -r assets/workbench/backend/requirements-dev.txt
+      - name: Verify shell launchers
+        run: |
+          bash -n assets/workbench/scripts/mac-launch.sh
+          for entry in assets/workbench/*.command; do bash -n "$entry"; done
+      - name: Test frontend helpers
+        working-directory: assets/workbench/frontend
+        run: node --test tests/*.test.mjs
+      - name: Full backend tests without paid providers
+        working-directory: assets/workbench/backend
+        run: ../.venv/bin/python -m pytest -q
+      - name: Native Keychain, executable and detached launcher smoke
+        run: assets/workbench/.venv/bin/python scripts/macos-native-smoke.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos-result-${{ matrix.runner }}
+          path: macos-native-result.local.json

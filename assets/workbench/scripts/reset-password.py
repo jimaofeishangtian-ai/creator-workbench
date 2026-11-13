@@ -2,8 +2,7 @@
 from pathlib import Path
 import sqlite3
 import sys
-import tkinter as tk
-from tkinter import messagebox, ttk
+from contextlib import closing
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
@@ -12,9 +11,41 @@ from app.db import data_directory
 from app.security import password_hash
 
 
+def reset_database(database, password):
+    if not database.is_file():
+        raise RuntimeError("没有找到本工作台的数据，请先运行启动工作台。")
+    if not 8 <= len(password) <= 256:
+        raise RuntimeError("请使用8至256位密码。")
+    with closing(sqlite3.connect(database, timeout=30)) as connection, connection:
+        connection.execute("BEGIN IMMEDIATE")
+        if not connection.execute("SELECT id FROM auth WHERE id=1").fetchone():
+            raise RuntimeError("请先在工作台首次设置页创建密码。")
+        connection.execute("UPDATE auth SET password_hash=? WHERE id=1", (password_hash(password),))
+        connection.execute("DELETE FROM sessions")
+
+
+def terminal_reset():
+    import getpass
+    if not sys.stdin.isatty():
+        raise SystemExit("请在本机终端交互运行重置密码；不接受命令行参数或管道中的密码。")
+    first = getpass.getpass("新密码（至少8位，不显示输入）：")
+    if first != getpass.getpass("再输入一次："):
+        raise SystemExit("两次输入不同，未修改密码。")
+    reset_database(data_directory() / "workbench.sqlite3", first)
+    print("密码已更新，电脑和手机请重新登录。")
+
+
 def main():
+    try:
+        import tkinter as tk
+        from tkinter import messagebox, ttk
+    except ImportError:
+        return terminal_reset()
     database = data_directory() / "workbench.sqlite3"
-    root = tk.Tk()
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        return terminal_reset()
     root.title("AI创作台 · 重新设置密码")
     root.geometry("470x355")
     root.resizable(False, False)
@@ -47,13 +78,7 @@ def main():
             error.set("没有找到本工作台的数据，请先运行启动工作台。")
             return
         try:
-            hashed = password_hash(password)
-            with sqlite3.connect(database, timeout=30) as connection:
-                connection.execute("BEGIN IMMEDIATE")
-                if not connection.execute("SELECT id FROM auth WHERE id=1").fetchone():
-                    raise RuntimeError("请先在工作台首次设置页创建密码。")
-                connection.execute("UPDATE auth SET password_hash=? WHERE id=1", (hashed,))
-                connection.execute("DELETE FROM sessions")
+            reset_database(database, password)
             first.set("")
             second.set("")
             messagebox.showinfo("密码已更新", "密码已更新。手机用新密码登录即可。\n电脑页面刷新后，也需要重新登录。", parent=root)

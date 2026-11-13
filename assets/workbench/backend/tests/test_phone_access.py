@@ -1,5 +1,6 @@
 import hashlib
 import threading
+from dataclasses import replace
 
 import pytest
 
@@ -79,7 +80,7 @@ def test_verified_download_is_reused(tmp_path, monkeypatch):
     phone = PhoneAccess(tmp_path)
     phone.folder.mkdir(parents=True)
     phone.binary.write_bytes(b"verified")
-    monkeypatch.setattr("app.phone_access.SHA256", hashlib.sha256(b"verified").hexdigest())
+    phone.artifact = replace(phone.artifact, binary_sha256=hashlib.sha256(b"verified").hexdigest())
     monkeypatch.setattr("app.phone_access.httpx.stream", lambda *a, **k: pytest.fail("cached binary was downloaded again"))
     phone.install()
     assert phone.status()["installed"]

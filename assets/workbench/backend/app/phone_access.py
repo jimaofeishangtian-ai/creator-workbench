@@ -5,6 +5,7 @@ import hashlib
 import os
 import re
 import subprocess
+import tarfile
 import threading
 import time
 from pathlib import Path
@@ -12,17 +13,16 @@ from pathlib import Path
 import httpx
 
 from .providers import TaskError
+from .platform_support import VERSION, tunnel_artifact, process_options, phone_platform_error
 
-VERSION = "2026.10.7"
-DOWNLOAD = f"https://github.com/cloudflare/cloudflared/releases/download/{VERSION}/cloudflared-windows-amd64.exe"
-SHA256 = "2493dbc168923bb3e59e5e7716f71deced92992eea9acd6e9d74f84ac7751343"
 URL_PATTERN = re.compile(r"https://[a-z0-9]+(?:-[a-z0-9]+)*\.trycloudflare\.com(?=[\s/|\"']|$)")
 
 
 class PhoneAccess:
     def __init__(self, root: Path, port=8765):
         self.folder = root / "tools" / "cloudflared"
-        self.binary = self.folder / "cloudflared.exe"
+        self.artifact = tunnel_artifact()
+        self.binary = self.folder / (self.artifact.executable if self.artifact else "cloudflared")
         self.port = port
         self.lock = threading.RLock()
         self.cancel = threading.Event()
@@ -49,8 +49,10 @@ class PhoneAccess:
         with self.lock:
             if self.worker and self.worker.is_alive():
                 return self.status()
-            if os.name != "nt":
-                raise TaskError("unsupported_platform", "扫码连接目前支持Windows电脑。")
+            if not self.artifact:
+                raise TaskError("unsupported_platform", "扫码连接支持Windows x64及macOS 15+的Intel/Apple芯片电脑。")
+            if error := phone_platform_error():
+                raise TaskError("unsupported_platform", error)
             self.cancel = threading.Event()
             self.state, self.message, self.url = "starting", "正在准备手机连接，首次会下载连接组件…", ""
             self.last_visit = None
@@ -77,13 +79,20 @@ class PhoneAccess:
         return self.status()
 
     def install(self):
+        if not self.artifact:
+            raise RuntimeError("没有适合当前系统的扫码组件")
+        artifact = self.artifact
         self.folder.mkdir(parents=True, exist_ok=True)
-        if self.binary.is_file() and hashlib.sha256(self.binary.read_bytes()).hexdigest() == SHA256:
+        if self.binary.is_file() and hashlib.sha256(self.binary.read_bytes()).hexdigest() == artifact.binary_sha256:
+            if artifact.executable != "cloudflared.exe":
+                self.binary.chmod(0o700)
             return
         partial = self.folder / "cloudflared.download"
+        extracted = self.folder / "cloudflared.extracted"
         digest, size = hashlib.sha256(), 0
         try:
-            with httpx.stream("GET", DOWNLOAD, follow_redirects=True, timeout=30) as response:
+            download = f"https://github.com/cloudflare/cloudflared/releases/download/{VERSION}/{artifact.filename}"
+            with httpx.stream("GET", download, follow_redirects=True, timeout=30) as response:
                 response.raise_for_status()
                 with partial.open("wb") as output:
                     for chunk in response.iter_bytes(256 * 1024):
@@ -94,11 +103,37 @@ class PhoneAccess:
                             raise RuntimeError("连接组件文件大小异常")
                         output.write(chunk)
                         digest.update(chunk)
-            if digest.hexdigest() != SHA256:
+            if self.cancel.is_set():
+                return
+            if digest.hexdigest() != artifact.download_sha256:
                 raise RuntimeError("连接组件校验未通过")
-            partial.replace(self.binary)
+            if artifact.filename.endswith(".tgz"):
+                # Never extract paths or links from the archive to disk.
+                with tarfile.open(partial, "r:gz") as archive:
+                    members = archive.getmembers()
+                    if len(members) != 1 or members[0].name != "cloudflared" or not members[0].isfile() or not 0 < members[0].size <= 100_000_000:
+                        raise RuntimeError("连接组件压缩包内容异常")
+                    source = archive.extractfile(members[0])
+                    digest, size = hashlib.sha256(), 0
+                    with source, extracted.open("wb") as output:
+                        while chunk := source.read(256 * 1024):
+                            if self.cancel.is_set():
+                                return
+                            size += len(chunk)
+                            if size > 100_000_000:
+                                raise RuntimeError("连接组件文件大小异常")
+                            digest.update(chunk)
+                            output.write(chunk)
+                    if digest.hexdigest() != artifact.binary_sha256:
+                        raise RuntimeError("连接组件可执行文件校验未通过")
+                extracted.chmod(0o700)
+                if not self.cancel.is_set():
+                    extracted.replace(self.binary)
+            else:
+                partial.replace(self.binary)
         finally:
             partial.unlink(missing_ok=True)
+            extracted.unlink(missing_ok=True)
 
     def run(self):
         process = None
@@ -114,7 +149,7 @@ class PhoneAccess:
                     [str(self.binary), "tunnel", "--no-autoupdate", "--protocol", "http2",
                      "--url", f"http://127.0.0.1:{self.port}", "--loglevel", "info"],
                     cwd=self.folder, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                    text=True, encoding="utf-8", errors="replace", creationflags=0x08000000,
+                    text=True, encoding="utf-8", errors="replace", **process_options(),
                 )
                 self.process = process
             deadline = time.monotonic() + 100
@@ -132,7 +167,7 @@ class PhoneAccess:
                             self.message = "已生成地址，正在等待线路连通…"
                         if self.url and "Registered tunnel connection" in line:
                             self.state = "ready"
-                            self.message = "手机切换5G，关闭Tailscale后扫码登录。"
+                            self.message = "手机用相机扫码，在浏览器输入工作台密码。"
                         elif "failed to serve tunnel connection" in line.lower():
                             self.state = "starting"
                             self.message = "手机线路中断，正在尝试重新连接…"

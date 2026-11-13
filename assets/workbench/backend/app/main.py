@@ -26,7 +26,7 @@ from .db import Store, data_directory, encode, now
 from .edge_bridge import EdgeBridge, PairBody, ResultBody, ORIGIN
 from .jobs import JobEngine
 from .providers import DeepSeek, TaskError, parse_douyin_url, SHANGHAI
-from .security import create_session, get_secret, password_hash, read_session, save_secret, verify_password
+from .security import create_session, get_secret, password_hash, read_session, save_secret, verify_password, SecretStorageError
 from . import services
 from .phone_access import PhoneAccess
 
@@ -96,6 +96,10 @@ def create_app(directory: Path | None = None, *, run_jobs=True, phone_port=8765)
     async def task_error(request, exc):
         status = 409 if exc.code == "revision_conflict" else 404 if exc.code == "not_found" else 400
         return JSONResponse({"code": exc.code, "message": exc.message}, status_code=status)
+
+    @app.exception_handler(SecretStorageError)
+    async def credential_error(request, exc):
+        return JSONResponse({"code": "credential_storage_unavailable", "message": str(exc)}, status_code=503)
 
     @app.middleware("http")
     async def boundary(request: Request, call_next):

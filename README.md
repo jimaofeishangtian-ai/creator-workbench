@@ -1,5 +1,7 @@
 # 自媒体选题工作台
 
+> 此分支为 macOS 15+ 兼容候选（Intel / Apple Silicon），并非已发布 Mac 稳定版。原 v0.3.0-beta 下载仍为 Windows 包。见 [Mac 适配说明](references/macos.md)。
+
 少刷无关视频，更快找到值得做的选题。由鸡毛灰上天整理的 Windows 本地自媒体选题工作台，适用于不同内容行业。
 
 **当前版本：v0.3.0-beta，公开测试版。** 工具代码采用 MIT 许可证；TikHub 数据接口、DeepSeek 模型调用可能收费，由使用者自行配置账号、核对价格和设置预算。

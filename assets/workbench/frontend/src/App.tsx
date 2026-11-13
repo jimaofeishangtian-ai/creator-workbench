@@ -3023,7 +3023,7 @@ function Settings({
                 </div>
               </div>
               <p className="muted">
-                API密钥使用Windows用户加密。抖音登录由Edge管理，不放入工作台备份；更换电脑后重新配置密钥并连接已登录的Edge。
+                API密钥使用系统安全存储（Windows用户加密／Mac钥匙串）。抖音登录由你选择的浏览器管理；更换电脑后需重新配置密钥并连接已登录的浏览器。
               </p>
               <div className="connection-actions">
                 <Button kind="primary" onClick={() => queue("backup")}>

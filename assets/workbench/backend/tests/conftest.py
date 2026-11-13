@@ -9,6 +9,20 @@ from fastapi.testclient import TestClient
 from app.main import create_app
 
 
+@pytest.fixture(autouse=True)
+def isolated_mac_credentials(monkeypatch):
+    # Broad product tests never prompt for or modify a user's real Keychain.
+    # A separate CI-only native test checks the real backend on disposable Macs.
+    import sys
+    if sys.platform == "darwin":
+        class MemoryKeychain:
+            values = {}
+            def set_password(self, service, name, value): self.values[service, name] = value
+            def get_password(self, service, name): return self.values.get((service, name))
+            def delete_password(self, service, name): self.values.pop((service, name), None)
+        monkeypatch.setattr("app.security._macos_keyring", lambda: MemoryKeychain())
+
+
 @pytest.fixture
 def app(tmp_path):
     return create_app(tmp_path / "data", run_jobs=False)

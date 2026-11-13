@@ -9,6 +9,8 @@ description: 在Windows为各行业自媒体搭建本地选题工作台；通过
 
 ## 开始
 
+本分支另有 macOS 15+ 兼容候选：先读 `references/macos.md`，使用 python3 和 .command 入口。Intel / Apple Silicon 分别验证；不得把 Windows beta 安装包或平台模拟测试说成 Mac 用户整条链路已验收。不读其他工作台数据，不更改用户当前实例。
+
 读取`references/setup.md`，运行`python scripts/workbench.py doctor`。核实宿主可读写本机、运行命令和控制已有登录的浏览器；不能从Codex/豆包/WorkBuddy名称推定这些能力。问清用户实际使用Chrome、Edge或其他哪一浏览器/profile，不迁移登录或读取Cookie。8765已有另一套实例时停止接管，不关闭其他任务。
 
 ## 首次访谈与配置

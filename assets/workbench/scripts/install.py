@@ -25,5 +25,5 @@ if not npm:
 subprocess.run([npm, "ci", "--no-audit", "--no-fund"], cwd=root / "frontend", check=True)
 subprocess.run([npm, "run", "build"], cwd=root / "frontend", check=True)
 if not shutil.which("ffmpeg"):
-    print("提示：尚未找到ffmpeg，字幕粘贴和文案生成可用，本机音频转写需先安装ffmpeg。")
-print("安装完成。运行「启动工作台.cmd」。")
+    print("提示：尚未找到ffmpeg，推荐与文本拆解可用；本机语音转写与HEIC封面转换需要FFmpeg。")
+print("安装完成。运行「启动工作台.command」。" if sys.platform == "darwin" else "安装完成。运行「启动工作台.cmd」。")

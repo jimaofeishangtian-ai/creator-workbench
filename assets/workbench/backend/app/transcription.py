@@ -4,6 +4,7 @@ import json
 import re
 import shutil
 import subprocess
+import platform
 import sys
 import tempfile
 from pathlib import Path
@@ -153,7 +154,7 @@ def transcribe(store, identity, progress):
         r = subprocess.run(["ffmpeg", "-nostdin", "-y", "-i", str(media), "-vn", "-ac", "1", "-ar", "16000", str(audio)], capture_output=True, timeout=180)
         if r.returncode or not audio.exists():
             raise TaskError("audio_error", "无法提取视频音轨；图文作品请提供正文，避免把背景音乐当口播")
-        device = settings["whisper_device"]
+        device = "cpu" if platform.system() == "Darwin" else settings["whisper_device"]
         if device == "auto":
             try:
                 import ctranslate2
