@@ -2,6 +2,8 @@
 
 本分支补齐 macOS 15+ 的 Intel / Apple Silicon 适配；旧 Windows beta 下载不因本分支而自动支持 Mac。模拟、依赖解析和原生测试分别记录。
 
+2026-11-13：两类云端原生 Mac 均通过安装、构建、246项后端测试、5项前端测试和原生接口检查；详见 [本次验收报告](../docs/MAC-COMPATIBILITY-20261113.md)。个人浏览器、手机5G和真实语音仍待实机。
+
 ## 环境与安装
 
 - 完整目标 macOS 15+，Intel 或 Apple Silicon 原生 Python 3.10—3.12，建议 3.12；Node.js 22.12+。M 系列不要混用 Rosetta 的 Intel Python 与 ARM 依赖。

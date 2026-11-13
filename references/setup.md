@@ -1,5 +1,7 @@
 # 安装与宿主兼容
 
+此兼容候选分支用于 Mac 时，优先读取 [macos.md](macos.md)，使用原生 Python3 和 Mac 启动入口。下述原 Windows beta 安装方法保留。
+
 首发为Windows本地分享测试版。推荐Python3.10—3.12、满足Vite7要求的Node.js（20.19+或22.12+），现有浏览器；首次安装需联网。FFmpeg用于HEIC封面转换与本地语音转写；普通JPEG/WebP/PNG封面和关键词推荐不需要它，转写模型只在语音转写时安装。
 
 ## 宿主

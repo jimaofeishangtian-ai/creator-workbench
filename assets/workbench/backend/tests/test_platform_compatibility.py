@@ -33,6 +33,14 @@ def test_macos_process_has_no_windows_flags_and_server_detaches():
     assert not phone_platform_error("Darwin", "15.0")
 
 
+def test_phone_settings_report_server_platform_not_client_browser(client, monkeypatch):
+    monkeypatch.setattr("platform.system", lambda: "Darwin")
+    monkeypatch.setattr("app.main.shutil.which", lambda *args: None)
+    response = client.get("/api/system", headers={"User-Agent": "Synthetic iPhone Safari"})
+    assert response.status_code == 200
+    assert response.json()["platform"] == "Darwin"
+
+
 class MemoryKeychain:
     def __init__(self): self.values = {}
     def set_password(self, service, name, value): self.values[service, name] = value

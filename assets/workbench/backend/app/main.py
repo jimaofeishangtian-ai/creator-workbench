@@ -786,11 +786,13 @@ def create_app(directory: Path | None = None, *, run_jobs=True, phone_port=8765)
     @app.get("/api/system", dependencies=[Depends(require_auth)])
     def system():
         import importlib.util
+        import platform
         tailscale = shutil.which("tailscale")
         if not tailscale:
             candidate = Path(os.environ.get("ProgramFiles", "C:/Program Files")) / "Tailscale/tailscale.exe"
             tailscale = str(candidate) if candidate.is_file() else None
         result = {"ffmpeg": bool(shutil.which("ffmpeg")), "whisper": bool(importlib.util.find_spec("faster_whisper")), "tailscale_installed": bool(tailscale), "tailscale_status": "not_installed" if not tailscale else "installed", "remote_url": store.settings()["remote_access"].get("url", ""), "data_directory": str(store.root)}
+        result["platform"] = platform.system()
         if tailscale:
             try:
                 r = subprocess.run([tailscale, "status", "--json"], capture_output=True, timeout=5, creationflags=0x08000000 if os.name == "nt" else 0)

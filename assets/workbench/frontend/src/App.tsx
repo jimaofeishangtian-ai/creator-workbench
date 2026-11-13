@@ -2428,9 +2428,10 @@ function Settings({
                       ))}
                     </select>
                   </Field>
-                  <Field label="计算设备">
+                  <Field label="计算设备" help={system?.platform === "Darwin" ? "Mac当前使用CPU转写，尚未接入苹果GPU加速。" : undefined}>
                     <select
-                      value={form.whisper_device}
+                      value={system?.platform === "Darwin" ? "cpu" : form.whisper_device}
+                      disabled={system?.platform === "Darwin"}
                       onChange={(e) =>
                         setForm({ ...form, whisper_device: e.target.value })
                       }
